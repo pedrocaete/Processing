@@ -25,29 +25,29 @@ void draw() {
 }
 
 void desenharGrade() {
-  stroke(240); // Cor cinza bem claro para as linhas da grade
-  
+  stroke(235); // Cor cinza bem claro para as linhas da grade
+
   float tamanhoEfetivoCelula = tamanhoCelula * zoom;
-  
+
   // Calcula os limites da grade visível na tela
   int inicioX = floor((deslocamentoX - width/2) / tamanhoEfetivoCelula) - 1;
   int fimX = ceil((deslocamentoX + width/2) / tamanhoEfetivoCelula) + 1;
   int inicioY = floor((deslocamentoY - height/2) / tamanhoEfetivoCelula) - 1;
   int fimY = ceil((deslocamentoY + height/2) / tamanhoEfetivoCelula) + 1;
-  
+
   // Desenha cada célula da grade
   for (int x = inicioX; x <= fimX; x++) {
     for (int y = inicioY; y <= fimY; y++) {
       // Calcula a posição da célula na tela
       float telaX = x * tamanhoEfetivoCelula - deslocamentoX + width/2;
       float telaY = y * tamanhoEfetivoCelula - deslocamentoY + height/2;
-      
+
       // Gera a chave única para cada célula
       String chave = x + "," + y;
-      
+
       // Determina a cor da célula (branco se não estiver preenchida)
       int corCelula = coresCelulas.containsKey(chave) ? coresCelulas.get(chave) : color(255);
-      
+
       // Desenha a célula
       fill(corCelula);
       rect(telaX, telaY, tamanhoEfetivoCelula, tamanhoEfetivoCelula);
@@ -77,22 +77,41 @@ void mouseReleased() {
     // Converte a posição do mouse para coordenadas do mundo
     float mundoX = (mouseX - width/2 + deslocamentoX) / zoom;
     float mundoY = (mouseY - height/2 + deslocamentoY) / zoom;
-    
+
     // Calcula a posição da célula na grade
     int gradeX = floor(mundoX / tamanhoCelula);
     int gradeY = floor(mundoY / tamanhoCelula);
-    
+
     String chave = gradeX + "," + gradeY;
-    
+
     if (mouseButton == LEFT) {
       // Botão esquerdo: preenche a célula com uma cor aleatória
       int novaCor = color(0);
-      coresCelulas.put(chave, novaCor);
+
+      if  (coresCelulas.containsKey(chave)) {
+
+        if (coresCelulas.get(chave) == color(0)) {
+          novaCor = color(0, 255, 0);
+        } else if (coresCelulas.get(chave) == color(0, 255, 0)) {
+          novaCor = color(255, 0, 0);
+        } else if (coresCelulas.get(chave) == color(255, 0, 0)) {
+          novaCor = color(0, 0, 255);
+        } else if (coresCelulas.get(chave) == color(0, 0, 255)) {
+          novaCor = color(255, 255, 0);
+        }
+        if (coresCelulas.get(chave) == color(255, 255, 0)) {
+          coresCelulas.remove(chave);
+        }
+      } else {
+        coresCelulas.put(chave, color(0));
+      }
+      if  (coresCelulas.containsKey(chave))
+        coresCelulas.put(chave, novaCor);
     } else if (mouseButton == RIGHT) {
       // Botão direito: apaga a célula (remove a cor)
       coresCelulas.remove(chave);
     }
-    
+
     redraw(); // Redesenha a tela para mostrar as mudanças
   }
 }
@@ -101,22 +120,22 @@ void mouseWheel(MouseEvent evento) {
   float fatorEscala = 1.05;
   // Aumenta ou diminui o zoom baseado na direção da rolagem
   float novoZoom = (evento.getCount() < 0) ? zoom * fatorEscala : zoom / fatorEscala;
-  
+
   // Limita o zoom entre 0.1 e 5.0
   novoZoom = constrain(novoZoom, 0.1, 5.0);
-  
+
   // Calcula a posição do mouse antes e depois do zoom para manter o ponto sob o cursor fixo
   float mouseXAntesZoom = (mouseX - width/2) / zoom + deslocamentoX;
   float mouseYAntesZoom = (mouseY - height/2) / zoom + deslocamentoY;
-  
+
   zoom = novoZoom;
-  
+
   float mouseXAposZoom = (mouseX - width/2) / zoom + deslocamentoX;
   float mouseYAposZoom = (mouseY - height/2) / zoom + deslocamentoY;
-  
+
   // Ajusta o deslocamento para manter o ponto sob o cursor fixo
   deslocamentoX += mouseXAntesZoom - mouseXAposZoom;
   deslocamentoY += mouseYAntesZoom - mouseYAposZoom;
-  
+
   redraw(); // Redesenha a tela com o novo nível de zoom
 }
